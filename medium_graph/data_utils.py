@@ -82,6 +82,13 @@ def load_fixed_splits(data_dir, dataset, name):
         splits['valid'] = torch.from_numpy(idx['valid'])
         splits['test'] = torch.from_numpy(idx['test'])
         splits_lst.append(splits)
+    elif name in ['cora', 'citeseer', 'pubmed']:
+        splits = {
+            'train': dataset.train_idx,
+            'valid': dataset.valid_idx,
+            'test': dataset.test_idx,
+        }
+        splits_lst.append(splits)
     elif name in ['pokec']:
         split = np.load(f'{data_dir}/{name}/{name}-splits.npy', allow_pickle=True)
         for i in range(split.shape[0]):
