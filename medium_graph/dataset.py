@@ -200,10 +200,10 @@ def load_hetero_dataset(data_dir, name):
 def load_amazon_dataset(data_dir, name):
     transform = T.NormalizeFeatures()
     if name == 'amazon-photo':
-        torch_dataset = Amazon(root=f'{data_dir}Amazon',
+        torch_dataset = Amazon(root=f'{data_dir}/Amazon',
                                  name='Photo', transform=transform)
     elif name == 'amazon-computer':
-        torch_dataset = Amazon(root=f'{data_dir}Amazon',
+        torch_dataset = Amazon(root=f'{data_dir}/Amazon',
                                  name='Computers', transform=transform)
     data = torch_dataset[0]
 
@@ -225,10 +225,10 @@ def load_amazon_dataset(data_dir, name):
 def load_coauthor_dataset(data_dir, name):
     transform = T.NormalizeFeatures()
     if name == 'coauthor-cs':
-        torch_dataset = Coauthor(root=f'{data_dir}Coauthor',
+        torch_dataset = Coauthor(root=f'{data_dir}/Coauthor',
                                  name='CS', transform=transform)
     elif name == 'coauthor-physics':
-        torch_dataset = Coauthor(root=f'{data_dir}Coauthor',
+        torch_dataset = Coauthor(root=f'{data_dir}/Coauthor',
                                  name='Physics', transform=transform)
     data = torch_dataset[0]
 

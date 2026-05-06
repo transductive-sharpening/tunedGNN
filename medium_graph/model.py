@@ -3,7 +3,57 @@ import torch.nn.functional as F
 from torch_geometric.nn import GATConv, GCNConv, SAGEConv
 import torch.nn as nn
 
-    
+
+class MLP(torch.nn.Module):
+    """Plain MLP baseline: same interface as MPNNs but ignores graph structure."""
+
+    def __init__(self, in_channels, hidden_channels, out_channels, local_layers=3,
+                 dropout=0.5, ln=False, bn=False, res=False, **_kwargs):
+        super().__init__()
+        self.dropout = dropout
+        self.ln = ln
+        self.bn = bn
+        self.res = res
+
+        self.lins = torch.nn.ModuleList()
+        self.lns = torch.nn.ModuleList()
+        self.bns = torch.nn.ModuleList()
+
+        self.lins.append(torch.nn.Linear(in_channels, hidden_channels))
+        self.lns.append(torch.nn.LayerNorm(hidden_channels))
+        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+
+        for _ in range(local_layers - 1):
+            self.lins.append(torch.nn.Linear(hidden_channels, hidden_channels))
+            self.lns.append(torch.nn.LayerNorm(hidden_channels))
+            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+
+        self.pred = torch.nn.Linear(hidden_channels, out_channels)
+
+    def reset_parameters(self):
+        for lin in self.lins:
+            lin.reset_parameters()
+        for ln in self.lns:
+            ln.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
+        self.pred.reset_parameters()
+
+    def forward(self, x, edge_index=None):
+        for i, lin in enumerate(self.lins):
+            h = lin(x)
+            if self.res and h.shape == x.shape:
+                h = h + x
+            if self.ln:
+                h = self.lns[i](h)
+            elif self.bn:
+                h = self.bns[i](h)
+            h = F.relu(h)
+            h = F.dropout(h, p=self.dropout, training=self.training)
+            x = h
+        return self.pred(x)
+
+
 class MPNNs(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, local_layers=3, 
                  dropout=0.5, heads=1, pre_ln=False, pre_linear=False, res=False, ln=False, bn=False, jk=False, gnn='gcn'):
